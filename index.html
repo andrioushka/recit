@@ -44,7 +44,6 @@
     border-bottom: 1px solid #d4c3a1;
     margin-bottom: 20px;
     text-align: justify;
-
   }
 
   #navigation {
@@ -62,10 +61,15 @@
     transition: background-color 0.3s;
   }
 
-  button:hover {
+  button:hover:enabled {
     background-color: #c0ad87;
   }
 
+  button:disabled {
+    background-color: #eee;
+    color: #999;
+    cursor: not-allowed;
+  }
 </style>
 </head>
 <body>
@@ -79,8 +83,8 @@
   </div>
 
   <div id="navigation">
-    <button onclick="loadChapter(currentChapter - 1)">⬅ Précédent</button>
-    <button onclick="loadChapter(currentChapter + 1)">Suivant ➡</button>
+    <button id="prevBtn" onclick="loadChapter(currentChapter - 1)">⬅ Précédent</button>
+    <button id="nextBtn" onclick="loadChapter(currentChapter + 1)">Suivant ➡</button>
   </div>
 </div>
 
@@ -89,18 +93,35 @@ let currentChapter = 1;
 const maxChapters = 5; // Modifie selon ton nombre de chapitres
 
 function loadChapter(num) {
-    if (num < 1 || num > maxChapters) return;
+    if (num < 1 || num > maxChapters) {
+        document.getElementById('content').innerText = "👉 Ce chapitre n'existe pas.";
+        return;
+    }
+
     currentChapter = num;
+
     fetch(`chapitre${num}.txt`)
-        .then(response => response.text())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Chapitre introuvable");
+            }
+            return response.text();
+        })
         .then(text => {
             document.getElementById('chapter-title').innerText = "Chapitre " + num;
             document.getElementById('content').innerText = text;
         })
         .catch(err => {
-            document.getElementById('content').innerText = "Erreur : chapitre introuvable.";
-            console.error(err);
-        });
+            document.getElementById('chapter-title').innerText = "Chapitre " + num;
+            document.getElementById('content').innerText = "⚠️ Désolé, ce chapitre est introuvable.";
+            console.warn(err);
+        })
+        .finally(updateButtons);
+}
+
+function updateButtons() {
+    document.getElementById("prevBtn").disabled = (currentChapter === 1);
+    document.getElementById("nextBtn").disabled = (currentChapter === maxChapters);
 }
 
 // Charger le premier chapitre au démarrage
