@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Avantures Rocambolesques</title>
+<title>Mon Blog JDR Solo</title>
 <style>
   body {
     font-family: 'Georgia', serif;
@@ -72,23 +72,35 @@
     cursor: not-allowed;
   }
 
-  #error-actions {
+  /* Style du popup erreur */
+  #error-popup {
+    display: none;
     text-align: center;
+    padding: 20px;
+    border: 2px solid #c00;
+    background: #fff3f3;
+    border-radius: 10px;
     margin-top: 15px;
+    color: #900;
+    font-weight: bold;
   }
 </style>
 </head>
 <body>
 
 <div id="book">
-  <h1>Aventures fiévreuses et déjantées</h1>
+  <h1>Mes Aventures Solo</h1>
   <h2 id="chapter-title">Chapitre 1</h2>
 
   <div id="content">
     <!-- Contenu du chapitre -->
   </div>
 
-  <div id="error-actions"></div>
+  <!-- Zone popup erreur -->
+  <div id="error-popup">
+    ⚠️ Désolé, ce chapitre est introuvable.<br><br>
+    <button onclick="returnToLast()">⬅ Retour au chapitre</button>
+  </div>
 
   <div id="navigation">
     <button id="prevBtn" onclick="loadChapter(currentChapter - 1)">⬅ Précédent</button>
@@ -114,10 +126,11 @@ function loadChapter(num) {
         })
         .then(text => {
             currentChapter = num;
-            lastValidChapter = num; // On garde en mémoire le dernier chapitre qui a marché
+            lastValidChapter = num; // On mémorise le dernier chapitre valide
             document.getElementById('chapter-title').innerText = "Chapitre " + num;
             document.getElementById('content').innerText = text;
-            document.getElementById('error-actions').innerHTML = ""; // On enlève le bouton retour si tout va bien
+            document.getElementById('error-popup').style.display = "none"; // on cache le popup
+            document.getElementById('navigation').style.display = "block"; // on remet navigation
         })
         .catch(err => {
             showError(num);
@@ -128,10 +141,13 @@ function loadChapter(num) {
 
 function showError(num) {
     document.getElementById('chapter-title').innerText = "Chapitre " + num;
-    document.getElementById('content').innerText = "⚠️ Désolé, ce chapitre est introuvable.";
-    document.getElementById('error-actions').innerHTML = `
-        <button onclick="loadChapter(lastValidChapter)">⬅ Retour au chapitre ${lastValidChapter}</button>
-    `;
+    document.getElementById('content').innerText = "";
+    document.getElementById('error-popup').style.display = "block"; // on affiche le popup erreur
+    document.getElementById('navigation').style.display = "none";   // on cache navigation
+}
+
+function returnToLast() {
+    loadChapter(lastValidChapter);
 }
 
 function updateButtons() {
