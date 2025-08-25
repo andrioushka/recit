@@ -48,13 +48,14 @@
 
   #navigation {
     text-align: center;
+    margin-top: 10px;
   }
 
   button {
     background-color: #d4c3a1;
     border: none;
     padding: 10px 20px;
-    margin: 0 10px;
+    margin: 5px;
     border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
@@ -70,6 +71,11 @@
     color: #999;
     cursor: not-allowed;
   }
+
+  #error-actions {
+    text-align: center;
+    margin-top: 15px;
+  }
 </style>
 </head>
 <body>
@@ -82,6 +88,8 @@
     <!-- Contenu du chapitre -->
   </div>
 
+  <div id="error-actions"></div>
+
   <div id="navigation">
     <button id="prevBtn" onclick="loadChapter(currentChapter - 1)">⬅ Précédent</button>
     <button id="nextBtn" onclick="loadChapter(currentChapter + 1)">Suivant ➡</button>
@@ -90,33 +98,40 @@
 
 <script>
 let currentChapter = 1;
+let lastValidChapter = 1;
 const maxChapters = 5; // Modifie selon ton nombre de chapitres
 
 function loadChapter(num) {
     if (num < 1 || num > maxChapters) {
-        document.getElementById('content').innerText = "👉 Ce chapitre n'existe pas.";
+        showError(num);
         return;
     }
 
-    currentChapter = num;
-
     fetch(`chapitre${num}.txt`)
         .then(response => {
-            if (!response.ok) {
-                throw new Error("Chapitre introuvable");
-            }
+            if (!response.ok) throw new Error("Chapitre introuvable");
             return response.text();
         })
         .then(text => {
+            currentChapter = num;
+            lastValidChapter = num; // On garde en mémoire le dernier chapitre qui a marché
             document.getElementById('chapter-title').innerText = "Chapitre " + num;
             document.getElementById('content').innerText = text;
+            document.getElementById('error-actions').innerHTML = ""; // On enlève le bouton retour si tout va bien
         })
         .catch(err => {
-            document.getElementById('chapter-title').innerText = "Chapitre " + num;
-            document.getElementById('content').innerText = "⚠️ Désolé, ce chapitre est introuvable.";
+            showError(num);
             console.warn(err);
         })
         .finally(updateButtons);
+}
+
+function showError(num) {
+    document.getElementById('chapter-title').innerText = "Chapitre " + num;
+    document.getElementById('content').innerText = "⚠️ Désolé, ce chapitre est introuvable.";
+    document.getElementById('error-actions').innerHTML = `
+        <button onclick="loadChapter(lastValidChapter)">⬅ Retour au chapitre ${lastValidChapter}</button>
+    `;
 }
 
 function updateButtons() {
