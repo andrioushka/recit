@@ -148,7 +148,12 @@ function loadChapter(num) {
         .then(response => response.text())
         .then(text => {
             document.getElementById('chapter-title').innerText = "Chapitre " + num;
-            document.getElementById('content').innerHTML = convertItalics(text);
+            const contentDiv = document.getElementById('content');
+            contentDiv.innerHTML = convertItalics(text);
+
+            // Remettre l'ascenseur en haut
+            contentDiv.scrollTop = 0;
+
             highlightMenu();
         })
         .catch(err => {
